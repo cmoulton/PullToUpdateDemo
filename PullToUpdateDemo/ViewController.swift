@@ -10,7 +10,7 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
   
-  var itemsArray:Array<CurrencyItem>?
+  var itemsArray:Array<StockQuoteItem>?
   @IBOutlet var tableView: UITableView?
   
   var refreshControl:UIRefreshControl!
@@ -23,11 +23,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
     self.tableView?.addSubview(refreshControl)
     
-    self.loadCurrencyItems()
+    self.loadStockQuoteItems()
   }
   
-  func loadCurrencyItems() {
-    CurrencyItem.getFeedItems({ (items, error) in
+  func loadStockQuoteItems() {
+    StockQuoteItem.getFeedItems({ (items, error) in
       if error != nil
       {
         var alert = UIAlertController(title: "Error", message: "Could not load images :( \(error?.localizedDescription)", preferredStyle: UIAlertControllerStyle.Alert)
@@ -39,13 +39,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
       {
         self.refreshControl.endRefreshing()
       }
+      
       self.tableView?.reloadData()
     })
   }
   
   func refresh(sender:AnyObject)
   {
-    self.loadCurrencyItems()
+    self.loadStockQuoteItems()
   }
   
   func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -56,19 +57,23 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as UITableViewCell
     let item = self.itemsArray?[indexPath.row]
     cell.textLabel?.text = ""
-    if let name = item?.name
+    cell.detailTextLabel?.text = ""
+    if let symbol = item?.symbol
     {
-      if let price = item?.price
+      if let ask = item?.ask
       {
-        cell.textLabel?.text = name + " @ $" + price
+        cell.textLabel?.text = symbol + " @ $" + ask
       }
     }
-    cell.detailTextLabel?.text = item?.utctime
+    if let low = item?.yearLow
+    {
+      if let high = item?.yearHigh
+      {
+        cell.detailTextLabel?.text = "Year: " + low + " - " + high
+      }
+    }
     return cell
   }
   
-  func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-    
-  }
 }
 

@@ -1,5 +1,5 @@
 //
-//  CurrencyItems.swift
+//  StockQuoteItems.swift
 //  PullToUpdateDemo
 //
 //  Created by Christina Moulton on 2015-04-29.
@@ -10,48 +10,46 @@ import Foundation
 import SwiftyJSON
 import Alamofire
 
-/* Feed (http://finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote?format=json) looks like
-{
-"list": {
-  "meta": {
-    "type": "resource-list",
-    "start": 0,
-    "count": 173
-  },
-  "resources": [
-    {
-    "resource": {
-    "classname": "Quote",
-    "fields": {
-      "name": "USD\/KRW",
-      "price": "1067.944946",
-      "symbol": "KRW=X",
-      "ts": "1430321940",
-      "type": "currency",
-      "utctime": "2015-04-29T15:39:00+0000",
-      "volume": "0"
+/* Feed of Apple, Yahoo & Google stock prices (ask, year high & year low) from Yahoo ( https://query.yahooapis.com/v1/public/yql?q=select%20symbol%2C%20Ask%2C%20YearHigh%2C%20YearLow%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22AAPL%22%2C%20%22GOOG%22%2C%20%22YHOO%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys ) looks like
+  {
+    "query": {
+      "count": 3,
+      "created": "2015-04-29T16:21:42Z",
+      "lang": "en-us",
+      "results": {
+        "quote": [
+          {
+          "symbol": "AAPL"
+          "YearLow": "82.904",
+          "YearHigh": "134.540",
+          "Ask": "129.680"
+          },
+          ...
+        ]
+      }
     }
-    }
-  },
-  ...
+  }
 */
+// See https://developer.yahoo.com/yql/ for tool to create queries
 
-class CurrencyItem {
-  let name: String
-  let utctime: String
-  let price: String
+class StockQuoteItem {
+  let symbol: String
+  let ask: String
+  let yearHigh: String
+  let yearLow: String
   
-  required init(currencyName: String, currencyPrice: String, quoteTime: String) {
-    self.name = currencyName
-    self.price = currencyPrice
-    self.utctime = quoteTime
+  required init(stockSymbol: String, stockAsk: String, stockYearHigh: String, stockYearLow: String) {
+    self.symbol = stockSymbol
+    self.ask = stockAsk
+    self.yearHigh = stockYearHigh
+    self.yearLow = stockYearLow
   }
   
   class func endpointForFeed() -> String {
-    return "http://finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote?format=json"//"https://api.currency.com/services/feeds/photos_public.gne?format=json"
+    return "https://query.yahooapis.com/v1/public/yql?q=select%20symbol%2C%20Ask%2C%20YearHigh%2C%20YearLow%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22AAPL%22%2C%20%22GOOG%22%2C%20%22YHOO%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
   }
   
-  class func getFeedItems(completionHandler: (Array<CurrencyItem>?, NSError?) -> Void) {
+  class func getFeedItems(completionHandler: (Array<StockQuoteItem>?, NSError?) -> Void) {
     Alamofire.request(.GET, self.endpointForFeed())
       .responseItemsArray { (request, response, itemsArray, error) in
         if let anError = error
@@ -84,29 +82,27 @@ extension Alamofire.Request {
         return (nil, json.error)
       }
       
-      var itemsArray:Array<CurrencyItem> = Array<CurrencyItem>()
+      var itemsArray:Array<StockQuoteItem> = Array<StockQuoteItem>()
       println(json)
-      let items = json["list"]["resources"].arrayValue
-      println(items)
-      for jsonItem in items
+      let quotes = json["query"]["results"]["quote"].arrayValue
+
+      for jsonItem in quotes
       {
-        let resource = jsonItem["resource"]
-        println(resource)
-        let fields = resource["fields"]
-        println(fields)
-        let name = fields["name"].stringValue
-        let price = fields["price"].stringValue
-        let utcTime = fields["utctime"].stringValue
-        let item = CurrencyItem(currencyName: name, currencyPrice: price, quoteTime: utcTime)
+        println(jsonItem)
+        let symbol = jsonItem["symbol"].stringValue
+        let yearLow = jsonItem["YearLow"].stringValue
+        let yearHigh = jsonItem["YearHigh"].stringValue
+        let ask = jsonItem["Ask"].stringValue
+        let item = StockQuoteItem(stockSymbol: symbol, stockAsk: ask, stockYearHigh: yearHigh, stockYearLow: yearLow)
         itemsArray.append(item)
       }
       return (itemsArray, nil)
     }
   }
   
-  func responseItemsArray(completionHandler: (NSURLRequest, NSHTTPURLResponse?, Array<CurrencyItem>?, NSError?) -> Void) -> Self {
+  func responseItemsArray(completionHandler: (NSURLRequest, NSHTTPURLResponse?, Array<StockQuoteItem>?, NSError?) -> Void) -> Self {
     return response(serializer: Request.itemsArrayResponseSerializer(), completionHandler: { (request, response, itemsArray, error) in
-      completionHandler(request, response, itemsArray as? Array<CurrencyItem>, error)
+      completionHandler(request, response, itemsArray as? Array<StockQuoteItem>, error)
     })
   }
 }

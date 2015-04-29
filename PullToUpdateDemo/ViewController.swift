@@ -13,7 +13,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   var itemsArray:Array<StockQuoteItem>?
   @IBOutlet var tableView: UITableView?
   
-  var refreshControl:UIRefreshControl!
+  var refreshControl = UIRefreshControl()
   var dateFormatter = NSDateFormatter()
   
   override func viewDidLoad() {
@@ -22,7 +22,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     self.dateFormatter.dateStyle = NSDateFormatterStyle.ShortStyle
     self.dateFormatter.timeStyle = NSDateFormatterStyle.LongStyle
     
-    self.refreshControl = UIRefreshControl()
     self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
     self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
     self.tableView?.addSubview(refreshControl)

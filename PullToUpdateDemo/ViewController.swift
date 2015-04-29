@@ -14,9 +14,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   @IBOutlet var tableView: UITableView?
   
   var refreshControl:UIRefreshControl!
+  var dateFormatter = NSDateFormatter()
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    self.dateFormatter.dateStyle = NSDateFormatterStyle.ShortStyle
+    self.dateFormatter.timeStyle = NSDateFormatterStyle.LongStyle
     
     self.refreshControl = UIRefreshControl()
     self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
@@ -35,6 +39,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         self.presentViewController(alert, animated: true, completion: nil)
       }
       self.itemsArray = items
+      
+      // update "last updated" title for refresh control
+      let now = NSDate()
+      let updateString = "Last Updated at " + self.dateFormatter.stringFromDate(now)
+      self.refreshControl.attributedTitle = NSAttributedString(string: updateString)
       if self.refreshControl.refreshing
       {
         self.refreshControl.endRefreshing()

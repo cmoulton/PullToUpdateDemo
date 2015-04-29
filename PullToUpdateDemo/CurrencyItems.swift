@@ -69,7 +69,6 @@ extension Alamofire.Request {
         return (nil, nil)
       }
       var jsonString = NSString(data: data!, encoding:NSUTF8StringEncoding)
-      println(jsonString!)
       var jsonError: NSError?
       let jsonData:AnyObject? = NSJSONSerialization.JSONObjectWithData(data!, options:NSJSONReadingOptions.AllowFragments, error: &jsonError)
       if jsonData == nil || jsonError != nil
@@ -83,12 +82,10 @@ extension Alamofire.Request {
       }
       
       var itemsArray:Array<StockQuoteItem> = Array<StockQuoteItem>()
-      println(json)
       let quotes = json["query"]["results"]["quote"].arrayValue
 
       for jsonItem in quotes
       {
-        println(jsonItem)
         let symbol = jsonItem["symbol"].stringValue
         let yearLow = jsonItem["YearLow"].stringValue
         let yearHigh = jsonItem["YearHigh"].stringValue

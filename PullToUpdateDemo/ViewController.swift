@@ -13,8 +13,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   var itemsArray:Array<CurrencyItem>?
   @IBOutlet var tableView: UITableView?
   
+  var refreshControl:UIRefreshControl!
+  
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    self.refreshControl = UIRefreshControl()
+    self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
+    self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
+    self.tableView?.addSubview(refreshControl)
+    
     self.loadCurrencyItems()
   }
   
@@ -27,10 +35,19 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         self.presentViewController(alert, animated: true, completion: nil)
       }
       self.itemsArray = items
+      if self.refreshControl.refreshing
+      {
+        self.refreshControl.endRefreshing()
+      }
       self.tableView?.reloadData()
     })
   }
-
+  
+  func refresh(sender:AnyObject)
+  {
+    self.loadCurrencyItems()
+  }
+  
   func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return self.itemsArray?.count ?? 0
   }

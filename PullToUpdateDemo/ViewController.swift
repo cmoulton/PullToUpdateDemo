@@ -34,7 +34,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     StockQuoteItem.getFeedItems({ (items, error) in
       if error != nil
       {
-        var alert = UIAlertController(title: "Error", message: "Could not load images :( \(error?.localizedDescription)", preferredStyle: UIAlertControllerStyle.Alert)
+        var alert = UIAlertController(title: "Error", message: "Could not load stock quotes :( \(error?.localizedDescription)", preferredStyle: UIAlertControllerStyle.Alert)
         alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.Default, handler: nil))
         self.presentViewController(alert, animated: true, completion: nil)
       }

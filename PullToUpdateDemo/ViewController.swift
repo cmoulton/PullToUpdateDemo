@@ -62,23 +62,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   }
   
   func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as UITableViewCell
+    let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as! UITableViewCell
     let item = self.itemsArray?[indexPath.row]
     cell.textLabel?.text = ""
     cell.detailTextLabel?.text = ""
-    if let symbol = item?.symbol
+    if let symbol = item?.symbol, ask = item?.ask
     {
-      if let ask = item?.ask
-      {
-        cell.textLabel?.text = symbol + " @ $" + ask
-      }
+      cell.textLabel?.text = symbol + " @ $" + ask
     }
-    if let low = item?.yearLow
+    if let low = item?.yearLow, high = item?.yearHigh
     {
-      if let high = item?.yearHigh
-      {
-        cell.detailTextLabel?.text = "Year: " + low + " - " + high
-      }
+      cell.detailTextLabel?.text = "Year: " + low + " - " + high
     }
     return cell
   }

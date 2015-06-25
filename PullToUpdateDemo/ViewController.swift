@@ -42,13 +42,30 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   func symbolsStringForStockType(type: StockType) -> Array<String>
   {
     switch type {
-      case .Tech:
-        return ["AAPL", "GOOG", "YHOO"]
-      case .Cars:
-        return ["GM", "F", "FCAU", "TM"]
-      case .Telecom:
-        return ["T", "VZ", "CMCSA"]
+    case .Tech:
+      return ["AAPL", "GOOG", "YHOO"]
+    case .Cars:
+      return ["GM", "F", "FCAU", "TM"]
+    case .Telecom:
+      return ["T", "VZ", "CMCSA"]
     }
+  }
+  
+  @IBAction func stockTypeSegmentedControlValueChanged(sender: UISegmentedControl)
+  {
+    switch sender.selectedSegmentIndex {
+    case 0:
+      self.stockType = .Tech
+    case 1:
+      self.stockType = .Cars
+    case 2:
+      self.stockType = .Telecom
+    default:
+      println("Segment index out of known range, do you need to add to the enum or switch statement?")
+    }
+    
+    // load data for our new symbols
+    refresh(sender)
   }
   
   func loadStockQuoteItems() {

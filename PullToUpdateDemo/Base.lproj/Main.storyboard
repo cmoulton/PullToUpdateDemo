@@ -68,7 +68,7 @@
                                 <segment title="Telecom"/>
                             </segments>
                             <connections>
-                                <action selector="stockTypeSegmentedControlValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="aRt-wk-QHX"/>
+                                <action selector="stockTypeSegmentedControlValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="rNh-Cr-nxx"/>
                             </connections>
                         </segmentedControl>
                     </navigationItem>

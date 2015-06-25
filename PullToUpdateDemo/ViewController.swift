@@ -39,13 +39,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     self.loadStockQuoteItems()
   }
   
-  func symbolsStringForStockType(type: StockType) -> Array<String>
+  func symbolsStringForCurrentStockType() -> Array<String>
   {
-    switch type {
+    switch self.stockType {
     case .Tech:
       return ["AAPL", "GOOG", "YHOO"]
     case .Cars:
-      return ["GM", "F", "FCAU", "TM"]
+      return ["GM", "F"]
     case .Telecom:
       return ["T", "VZ", "CMCSA"]
     }
@@ -69,7 +69,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   }
   
   func loadStockQuoteItems() {
-    let symbols = symbolsStringForStockType(stockType)
+    let symbols = symbolsStringForCurrentStockType()
     StockQuoteItem.getFeedItems(symbols, completionHandler: { (items, error) in
       if error != nil
       {

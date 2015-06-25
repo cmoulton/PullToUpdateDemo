@@ -45,12 +45,18 @@ class StockQuoteItem {
     self.yearLow = stockYearLow
   }
   
-  class func endpointForFeed() -> String {
-    return "https://query.yahooapis.com/v1/public/yql?q=select%20symbol%2C%20Ask%2C%20YearHigh%2C%20YearLow%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22AAPL%22%2C%20%22GOOG%22%2C%20%22YHOO%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
+  class func endpointForFeed(symbols: Array<String>) -> String {
+    //    let wrappedSymbols = symbols.map { $0 = "\"" + $0 + "\"" }
+    let symbolsString:String = "\", \"".join(symbols)
+    let query = "select * from yahoo.finance.quotes where symbol in (\"\(symbolsString) \")&format=json&env=http://datatables.org/alltables.env"
+    let encodedQuery = query.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())
+    
+    let endpoint = "https://query.yahooapis.com/v1/public/yql?q=" + encodedQuery!
+    return endpoint
   }
   
-  class func getFeedItems(completionHandler: (Array<StockQuoteItem>?, NSError?) -> Void) {
-    Alamofire.request(.GET, self.endpointForFeed())
+  class func getFeedItems(symbols: Array<String>, completionHandler: (Array<StockQuoteItem>?, NSError?) -> Void) {
+    Alamofire.request(.GET, self.endpointForFeed(symbols))
       .responseItemsArray { (request, response, itemsArray, error) in
         if let anError = error
         {

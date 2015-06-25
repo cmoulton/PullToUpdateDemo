@@ -8,10 +8,18 @@
 
 import UIKit
 
+enum StockType {
+  case Tech
+  case Cars
+  case Telecom
+}
+
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
   
   var itemsArray:Array<StockQuoteItem>?
   @IBOutlet var tableView: UITableView?
+  
+  var stockType: StockType = .Tech
   
   var refreshControl = UIRefreshControl()
   var dateFormatter = NSDateFormatter()
@@ -22,6 +30,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     self.dateFormatter.dateStyle = NSDateFormatterStyle.ShortStyle
     self.dateFormatter.timeStyle = NSDateFormatterStyle.LongStyle
     
+    self.refreshControl.backgroundColor = UIColor.clearColor()
+    
     self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
     self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
     self.tableView?.addSubview(refreshControl)
@@ -29,8 +39,21 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     self.loadStockQuoteItems()
   }
   
+  func symbolsStringForStockType(type: StockType) -> Array<String>
+  {
+    switch type {
+      case .Tech:
+        return ["AAPL", "GOOG", "YHOO"]
+      case .Cars:
+        return ["GM", "F", "FCAU", "TM"]
+      case .Telecom:
+        return ["T", "VZ", "CMCSA"]
+    }
+  }
+  
   func loadStockQuoteItems() {
-    StockQuoteItem.getFeedItems({ (items, error) in
+    let symbols = symbolsStringForStockType(stockType)
+    StockQuoteItem.getFeedItems(symbols, completionHandler: { (items, error) in
       if error != nil
       {
         var alert = UIAlertController(title: "Error", message: "Could not load stock quotes :( \(error?.localizedDescription)", preferredStyle: UIAlertControllerStyle.Alert)

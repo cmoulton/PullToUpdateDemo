@@ -49,57 +49,56 @@ class StockQuoteItem {
     return "https://query.yahooapis.com/v1/public/yql?q=select%20symbol%2C%20Ask%2C%20YearHigh%2C%20YearLow%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22AAPL%22%2C%20%22GOOG%22%2C%20%22YHOO%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
   }
   
-  class func getFeedItems(completionHandler: (Array<StockQuoteItem>?, NSError?) -> Void) {
+  class func getFeedItems(completionHandler: ([StockQuoteItem]?, NSError?) -> Void) {
     Alamofire.request(.GET, self.endpointForFeed())
-      .responseItemsArray { (request, response, itemsArray, error) in
-        if let anError = error
+      .responseItemsArray { response in
+        if let error = response.result.error
         {
           completionHandler(nil, error)
           return
         }
-        completionHandler(itemsArray, nil)
+        completionHandler(response.result.value, nil)
     }
   }
 }
 
 extension Alamofire.Request {
-  class func itemsArrayResponseSerializer() -> Serializer {
-    return { request, response, data in
-      if data == nil {
-        return (nil, nil)
-      }
-      var jsonString = NSString(data: data!, encoding:NSUTF8StringEncoding)
-      var jsonError: NSError?
-      let jsonData:AnyObject? = NSJSONSerialization.JSONObjectWithData(data!, options:NSJSONReadingOptions.AllowFragments, error: &jsonError)
-      if jsonData == nil || jsonError != nil
-      {
-        return (nil, jsonError)
-      }
-      let json = JSON(jsonData!)
-      if json.error != nil || json == nil
-      {
-        return (nil, json.error)
+  func responseItemsArray(completionHandler: Response<[StockQuoteItem], NSError> -> Void) -> Self {
+    let serializer = ResponseSerializer<[StockQuoteItem], NSError> { request, response, data, error in
+      guard let responseData = data else {
+        let failureReason = "Image URL could not be serialized because input data was nil."
+        let error = Error.errorWithCode(.DataSerializationFailed, failureReason: failureReason)
+        return .Failure(error)
       }
       
-      var itemsArray:Array<StockQuoteItem> = Array<StockQuoteItem>()
-      let quotes = json["query"]["results"]["quote"].arrayValue
-
-      for jsonItem in quotes
-      {
-        let symbol = jsonItem["symbol"].stringValue
-        let yearLow = jsonItem["YearLow"].stringValue
-        let yearHigh = jsonItem["YearHigh"].stringValue
-        let ask = jsonItem["Ask"].stringValue
-        let item = StockQuoteItem(stockSymbol: symbol, stockAsk: ask, stockYearHigh: yearHigh, stockYearLow: yearLow)
-        itemsArray.append(item)
+      let JSONResponseSerializer = Request.JSONResponseSerializer(options: .AllowFragments)
+      let result = JSONResponseSerializer.serializeResponse(request, response, responseData, error)
+      
+      switch result {
+      case .Success(let value):
+        let json = SwiftyJSON.JSON(value)
+        guard json.error == nil else {
+          print(json.error!)
+          return .Failure(json.error!)
+        }
+        
+        var itemsArray = [StockQuoteItem]()
+        let quotes = json["query"]["results"]["quote"].arrayValue
+        for jsonItem in quotes {
+          let symbol = jsonItem["symbol"].stringValue
+          let yearLow = jsonItem["YearLow"].stringValue
+          let yearHigh = jsonItem["YearHigh"].stringValue
+          let ask = jsonItem["Ask"].stringValue
+          let item = StockQuoteItem(stockSymbol: symbol, stockAsk: ask, stockYearHigh: yearHigh, stockYearLow: yearLow)
+          itemsArray.append(item)
+        }
+        
+        return .Success(itemsArray)
+      case .Failure(let error):
+        return .Failure(error)
       }
-      return (itemsArray, nil)
     }
-  }
-  
-  func responseItemsArray(completionHandler: (NSURLRequest, NSHTTPURLResponse?, Array<StockQuoteItem>?, NSError?) -> Void) -> Self {
-    return response(serializer: Request.itemsArrayResponseSerializer(), completionHandler: { (request, response, itemsArray, error) in
-      completionHandler(request, response, itemsArray as? Array<StockQuoteItem>, error)
-    })
+    
+    return response(responseSerializer: serializer, completionHandler: completionHandler)
   }
 }
